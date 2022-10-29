@@ -9,6 +9,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { HttpCode } from "@nestjs/common";
 import { CreateDto, UpdateDto } from './dto';
 import { TodoService } from '../services/todo.service';
 import { Todo } from '../entities/todo.entity';
@@ -49,6 +50,7 @@ export class TodoController {
     @Body() updateDto: UpdateDto,
   ): Promise<Todo | { error: boolean }> {
     const todo = await this.todoService.findOne(parseInt(id));
+
     if (!todo)
       throw new HttpException(
         `Todo with id=${id} does not exist.`,
@@ -62,7 +64,16 @@ export class TodoController {
   }
 
   @Delete(':id')
-  deleteAction(@Param('id') id: string): Promise<void> {
+  @HttpCode(200)
+  async deleteAction(@Param('id') id: string): Promise<void> {
+    const todo = await this.todoService.findOne(parseInt(id));
+
+    if (!todo)
+      throw new HttpException(
+          `Todo with id=${id} does not exist.`,
+          HttpStatus.NOT_FOUND,
+      );
+
     return this.todoService.remove(id);
   }
 }
