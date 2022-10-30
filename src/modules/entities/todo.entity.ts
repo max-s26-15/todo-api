@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Status } from '../status.array';
 
 @Entity()
 export class Todo {
@@ -8,6 +9,6 @@ export class Todo {
   @Column()
   title: string;
 
-  @Column({ default: 0 })
-  statusId: number;
+  @Column({ default: Status[0] })
+  status: string;
 }

@@ -1,9 +1,9 @@
 export class CreateDto {
   title: string;
-  statusId?: number;
+  status?: string;
 }
 
 export class UpdateDto {
   title: string;
-  statusId?: number;
+  status?: string;
 }
