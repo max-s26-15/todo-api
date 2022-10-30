@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TodoModule } from './modules/todo/todo.module';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TodoModule } from './modules/todo/todo.module';
       synchronize: true,
     }),
     TodoModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
