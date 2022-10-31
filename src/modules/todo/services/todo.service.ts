@@ -1,33 +1,52 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Todo } from '../entities/todo.entity';
+import {Injectable} from '@nestjs/common';
+import {InjectRepository} from '@nestjs/typeorm';
+import {Todo} from '../entities/todo.entity';
+import {UserService} from "../../user/services/user.service";
+import {CreateDto} from "../dto/dto";
+import {Status} from "../status.array";
+import {TodoRepository} from "../repository/todo.repository";
 
 @Injectable()
 export class TodoService {
-  constructor(
-    @InjectRepository(Todo)
-    private readonly todoRepository: Repository<Todo>,
-  ) {}
+    constructor(
+        @InjectRepository(Todo) private todoRepository: TodoRepository,
+        private readonly userService: UserService
+    ) {
+    }
 
-  findAll(): Promise<Todo[]> {
-    return this.todoRepository.find();
-  }
+    findAll(userId: number): Promise<Todo[]> {
+        return this.todoRepository.find({
+            relations: ['user'],
+            where: {user: {id: userId}},
+        });
+    }
 
-  findOne(_id: number): Promise<Todo> {
-    return this.todoRepository.findOneBy({ id: _id });
-  }
+    findAllByStatus(status: string, userId: number): Promise<Todo[]> {
+        return this.todoRepository.find({
+            relations: ['user'],
+            where: {user: {id: userId}, status: status},
+        });
+    }
 
-  create(todo: Todo): Promise<Todo> {
-    delete todo.id;
-    return this.todoRepository.save(todo);
-  }
+    findOne(userId:number, id: number): Promise<Todo> {
+        return this.todoRepository.findOneBy({id: id, user: {id: userId}});
+    }
 
-  update(todo: Todo): Promise<Todo> {
-    return this.todoRepository.save(todo);
-  }
+    async create(createDto: CreateDto, userId: number): Promise<Todo> {
+        const todo = new Todo();
 
-  async remove(id: string): Promise<void> {
-    await this.todoRepository.delete(id);
-  }
+        todo.title = createDto.title;
+        todo.status = createDto.status || Status[0];
+        todo.user = await this.userService.findById(userId);
+
+        return this.todoRepository.save(todo);
+    }
+
+    update(todo: Todo): Promise<Todo> {
+        return this.todoRepository.save(todo);
+    }
+
+    async remove(id: string): Promise<void> {
+        await this.todoRepository.delete(id);
+    }
 }

@@ -1,100 +1,100 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpException,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpException,
+    HttpStatus,
+    Param,
+    Post,
+    Put, Query,
 } from '@nestjs/common';
-import { HttpCode } from '@nestjs/common';
-import { CreateDto, UpdateDto } from './dto';
-import { TodoService } from '../services/todo.service';
-import { Todo } from '../entities/todo.entity';
-import { Status } from '../status.array';
+import {TodoService} from '../services/todo.service';
+import {Todo} from '../entities/todo.entity';
+import {Status} from '../status.array';
+import {CreateDto, UpdateDto} from "../dto/dto";
 
 @Controller('rest/todo')
 export class TodoController {
-  constructor(private readonly todoService: TodoService) {}
+    constructor(private readonly todoService: TodoService) {
+    }
 
-  @Get()
-  getAllActions(): Promise<Todo[]> {
-    return this.todoService.findAll();
-  }
+    @Get(':userId')
+    getAllActions(@Param('userId') userId: string, @Query('status') status?: string): Promise<Todo[]> {
+        if (status) {
+            return this.todoService.findAllByStatus(status, parseInt(userId));
+        }
 
-  @Get(':id')
-  async getOneAction(@Param('id') id: string): Promise<Todo> {
-    const todo = await this.todoService.findOne(parseInt(id));
+        return this.todoService.findAll(parseInt(userId));
+    }
 
-    if (!todo)
-      throw new HttpException(
-        `Todo with id=${id} does not exist.`,
-        HttpStatus.NOT_FOUND,
-      );
+    @Get('/findOne/:userId/:id')
+    async getOneAction(@Param('userId') userId: string, @Param('id') id: string): Promise<Todo> {
+        const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 
-    return todo;
-  }
+        if (!todo)
+            throw new HttpException(
+                `Todo with id=${id} does not exist.`,
+                HttpStatus.NOT_FOUND,
+            );
 
-  @Post()
-  createAction(@Body() createDto: CreateDto): Promise<Todo> {
-    const todo = new Todo();
+        return todo;
+    }
 
-    if (createDto.title == null)
-      throw new HttpException(
-        `Title is required field`,
-        HttpStatus.NOT_ACCEPTABLE,
-      );
+    @Post(':userId')
+    createAction(@Body() createDto: CreateDto, @Param('userId') userId: string): Promise<Todo> {
 
-    if (!Status.includes(createDto.status) && createDto.status != null)
-      throw new HttpException(
-        `Unknown status '${createDto.status}'`,
-        HttpStatus.NOT_ACCEPTABLE,
-      );
+        if (createDto.title == null)
+            throw new HttpException(
+                `Title is required field`,
+                HttpStatus.NOT_ACCEPTABLE,
+            );
 
-    todo.title = createDto.title;
-    todo.status = createDto.status || Status[0];
+        if (!Status.includes(createDto.status) && createDto.status != null)
+            throw new HttpException(
+                `Unknown status '${createDto.status}'`,
+                HttpStatus.NOT_ACCEPTABLE,
+            );
 
-    return this.todoService.create(todo);
-  }
+        return this.todoService.create(createDto, parseInt(userId));
+    }
 
-  @Put(':id')
-  async updateAction(
-    @Param('id') id: string,
-    @Body() updateDto: UpdateDto,
-  ): Promise<Todo | { error: boolean }> {
-    const todo = await this.todoService.findOne(parseInt(id));
+    @Put(':userId/:id')
+    async updateAction(
+        @Param('userId') userId: string,
+        @Param('id') id: string,
+        @Body() updateDto: UpdateDto,
+    ): Promise<Todo | { error: boolean }> {
+        const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 
-    if (!todo)
-      throw new HttpException(
-        `Todo with id=${id} does not exist.`,
-        HttpStatus.NOT_FOUND,
-      );
+        if (!todo)
+            throw new HttpException(
+                `Todo with id=${id} does not exist.`,
+                HttpStatus.NOT_FOUND,
+            );
 
-    if (!Status.includes(updateDto.status) && updateDto.status != null)
-      throw new HttpException(
-        `Unknown status '${updateDto.status}'`,
-        HttpStatus.NOT_ACCEPTABLE,
-      );
+        if (!Status.includes(updateDto.status) && updateDto.status != null)
+            throw new HttpException(
+                `Unknown status '${updateDto.status}'`,
+                HttpStatus.NOT_ACCEPTABLE,
+            );
 
-    todo.title = updateDto.title || todo.title;
-    todo.status = updateDto.status || todo.status;
+        todo.title = updateDto.title || todo.title;
+        todo.status = updateDto.status || todo.status;
 
-    return this.todoService.update(todo);
-  }
+        return this.todoService.update(todo);
+    }
 
-  @Delete(':id')
-  @HttpCode(200)
-  async deleteAction(@Param('id') id: string): Promise<void> {
-    const todo = await this.todoService.findOne(parseInt(id));
+    @Delete(':userId/:id')
+    async deleteAction(@Param('userId') userId: string, @Param('id') id: string): Promise<void> {
+        const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 
-    if (!todo)
-      throw new HttpException(
-        `Todo with id=${id} does not exist.`,
-        HttpStatus.NOT_FOUND,
-      );
+        if (!todo)
+            throw new HttpException(
+                `Todo with id=${id} does not exist.`,
+                HttpStatus.NOT_FOUND,
+            );
 
-    return this.todoService.remove(id);
-  }
+        return this.todoService.remove(id);
+    }
 }
