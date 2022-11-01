@@ -13,13 +13,22 @@ import {TodoService} from '../services/todo.service';
 import {Todo} from '../entities/todo.entity';
 import {Status} from '../status.array';
 import {CreateDto, UpdateDto} from "../dto/dto";
+import {ApiBody, ApiResponse, ApiTags} from "@nestjs/swagger";
+import {NotAcceptableResponse, NotFoundResponse} from "../../type";
 
+@ApiTags('Todo')
 @Controller('rest/todo')
 export class TodoController {
     constructor(private readonly todoService: TodoService) {
     }
 
     @Get(':userId')
+    @ApiResponse({
+        status: 200,
+        description: "Get all todos of user by user Id and status.",
+        type: Todo,
+        isArray: true
+    })
     getAllActions(@Param('userId') userId: string, @Query('status') status?: string): Promise<Todo[]> {
         if (status) {
             return this.todoService.findAllByStatus(status, parseInt(userId));
@@ -29,6 +38,8 @@ export class TodoController {
     }
 
     @Get('/findOne/:userId/:id')
+    @ApiResponse({status: 200, description: "Get one todo of user by user Id and todo Id.", type: Todo})
+    @ApiResponse({status: 404, description: "Not Found", type: NotFoundResponse})
     async getOneAction(@Param('userId') userId: string, @Param('id') id: string): Promise<Todo> {
         const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 
@@ -42,6 +53,9 @@ export class TodoController {
     }
 
     @Post(':userId')
+    @ApiResponse({status: 201, description: "Create todo for user.", type: Todo})
+    @ApiResponse({status: 406, description: "Not Acceptable", type: NotAcceptableResponse})
+    @ApiBody({type: CreateDto})
     createAction(@Body() createDto: CreateDto, @Param('userId') userId: string): Promise<Todo> {
 
         if (createDto.title == null)
@@ -60,6 +74,10 @@ export class TodoController {
     }
 
     @Put(':userId/:id')
+    @ApiResponse({status: 200, description: "Put changes in user's todo.", type: Todo})
+    @ApiResponse({status: 404, description: "Not Found", type: NotFoundResponse})
+    @ApiResponse({status: 406, description: "Not Acceptable", type: NotAcceptableResponse})
+    @ApiBody({type: UpdateDto})
     async updateAction(
         @Param('userId') userId: string,
         @Param('id') id: string,
@@ -86,6 +104,8 @@ export class TodoController {
     }
 
     @Delete(':userId/:id')
+    @ApiResponse({status: 200, description: "Delete user's todo."})
+    @ApiResponse({status: 404, description: "Not Found", type: NotFoundResponse})
     async deleteAction(@Param('userId') userId: string, @Param('id') id: string): Promise<void> {
         const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 

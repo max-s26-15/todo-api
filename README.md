@@ -45,6 +45,13 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Watch the documentation
+
+```bash
+# documentation
+$ http://localhost:3000/swagger
+```
+
 ## Test
 
 ```bash
