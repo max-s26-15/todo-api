@@ -40,7 +40,8 @@ export class TodoController {
     @Get('/findOne/:userId/:id')
     @ApiResponse({status: 200, description: "Get one todo of user by user Id and todo Id.", type: Todo})
     @ApiResponse({status: 404, description: "Not Found", type: NotFoundResponse})
-    async getOneAction(@Param('userId') userId: string, @Param('id') id: string): Promise<Todo> {
+    async getOneAction(@Param() param): Promise<Todo> {
+        const {userId, id} = param;
         const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 
         if (!todo)
@@ -79,10 +80,10 @@ export class TodoController {
     @ApiResponse({status: 406, description: "Not Acceptable", type: NotAcceptableResponse})
     @ApiBody({type: UpdateDto})
     async updateAction(
-        @Param('userId') userId: string,
-        @Param('id') id: string,
+        @Param() param,
         @Body() updateDto: UpdateDto,
     ): Promise<Todo | { error: boolean }> {
+        const {userId, id} = param;
         const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 
         if (!todo)
@@ -106,7 +107,8 @@ export class TodoController {
     @Delete(':userId/:id')
     @ApiResponse({status: 200, description: "Delete user's todo."})
     @ApiResponse({status: 404, description: "Not Found", type: NotFoundResponse})
-    async deleteAction(@Param('userId') userId: string, @Param('id') id: string): Promise<void> {
+    async deleteAction(@Param() param): Promise<void> {
+        const {userId, id} = param;
         const todo = await this.todoService.findOne(parseInt(userId), parseInt(id));
 
         if (!todo)
